@@ -1,0 +1,260 @@
+<script type="module">
+  import Swiper from 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.mjs'
+
+  let swiper = new Swiper(".mySwiper", {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    loop: true,
+    speed: {{ section.settings.swiper_speed }},
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
+    },
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true,
+    },
+  });
+</script>
+
+<script>
+    $(document).ready(function() {
+      $('.buy-now').on('click', function() {
+        var productId = $(this).data('product-id');
+        var variantId = $(this).data('variant-id');
+
+        $.ajax({
+          type: 'POST',
+          url: '/cart/add.js',
+          dataType: 'json',
+          data: {
+            quantity: 1,
+            id: variantId
+          },
+          success: function(response) {
+            window.location.href = '/checkout';
+          },
+          error: function(xhr, status, error) {
+            console.error(xhr.responseText);
+            // Тут можна додати обробку помилок в разі необхідності
+          }
+        });
+      });
+    });
+
+  $(document).ready(function() {
+      $('.add-to-cart-button').on('click', function() {
+          var productId = $(this).data('product-id');
+          var variantId = $(this).data('variant-id');
+
+          // Виконати AJAX-запит на додавання товару в кошик
+          $.ajax({
+              type: 'POST',
+              url: '/cart/add.js',
+              dataType: 'json',
+              data: {
+                  quantity: 1,
+                  id: variantId
+              },
+              success: function(response) {
+                  // Успішно додано до кошика
+                  console.log('Product added to cart!');
+
+                // Отримати поточне значення лічильника кількості продуктів у кошику
+                var currentCount = parseInt($('.cart-count-bubble span').text().trim()); // Очистити текст від зайвих символів і пробілів
+
+                // Збільшити лічильник на 1
+                var newCount = currentCount + 1;
+
+                // Оновити лічильник кількості продуктів у кошику
+                $('.cart-count-bubble span').empty().text(newCount);
+              },
+              error: function(xhr, status, error) {
+                  console.error(xhr.responseText);
+                  // Тут можна додати обробку помилок в разі необхідності
+              }
+          });
+      });
+  });
+</script>
+<style>
+  html,
+  body {
+    position: relative;
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: #eee;
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    color: #000;
+    margin: 0;
+    padding: 0;
+  }
+
+  .slider-product-title{
+    text-align: center;
+  }
+
+  .slider-product-image {
+    margin: auto;
+  }
+
+  .swiper-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .add-to-cart-button, .buy-now {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background: {{ section.settings.button_background_color }};
+    color: white;
+  }
+
+  .swiper-button-next, .swiper-button-prev {
+    top: -150px;
+    color: {{ section.settings.swiper_button_color }};
+  }
+
+  .swiper-pagination {
+    bottom: -35px !important;
+  }
+</style>
+
+<div class="custom-section mt-10">
+  <h2
+    class="text-center text-4xl"
+    style="color: {{ section.settings.title_color }}; background-color: {{ section.settings.title_background_color }};"
+  >
+    {{ section.settings.title }}
+  </h2>
+
+  <div class="swiper-container mySwiper" navigation="true" pagination="true" loop="true">
+    <div class="swiper-wrapper">
+      {% for block in section.blocks %}
+        {% if block.type == 'product' %}
+          {% assign product = block.settings.product %}
+          <div class="swiper-slide">
+            <img
+              class="slider-product-image"
+              src="{{ product.featured_image | img_url: 'medium' }}"
+              alt="{{ product.title }}"
+            >
+            <h2 class="slider-product-title">{{ product.title }}</h2>
+
+            {% if product.variants.size == 1 %}
+              <button
+                id="buy-now-button-{{ product.id }}"
+                class="buy-now"
+                data-product-id="{{ product.id }}"
+                data-variant-id="{{ product.variants[0].id }}"
+              >
+                Buy Now
+              </button>
+            {% else %}
+              <button
+                id="add-to-cart-button-{{ product.id }}"
+                class="add-to-cart-button"
+                data-product-id="{{ product.id }}"
+                data-variant-id="{{ product.variants[0].id }}"
+              >
+                Add to Cart
+              </button>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div style="position: relative;">
+      <div class="swiper-button-next">
+        {% render 'icon-arrow-next' %}
+      </div>
+      <div class="swiper-button-prev">
+        {% render 'icon-arrow-prev' %}
+      </div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </div>
+
+  <div class="mt-20 mx-10">
+    <p class="text-center">{{ section.settings.description }}</p>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Best Collection",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Custom Title"
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "title_background_color",
+      "label": "Title Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Custom Description"
+    },
+    {
+      "type": "color",
+      "id": "button_background_color",
+      "label": "Buttom Background Color",
+      "default": "#000"
+    },
+    {
+      "type": "color",
+      "id": "swiper_button_color",
+      "label": "Swiper Button Color",
+      "default": "#000"
+    },
+    {
+      "type": "range",
+      "id": "swiper_speed",
+      "label": "Швидкість прокрутки слайдера (в мілісекундах)",
+      "default": 1000,
+      "min": 500,
+      "max": 5000,
+      "step": 100
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Продукт",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Оберіть продукт"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Best Collection",
+      "category": "Custom Content"
+    }
+  ]
+}
+{% endschema %}
