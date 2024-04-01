@@ -18,63 +18,66 @@
 </script>
 
 <script>
-    $(document).ready(function() {
-      $('.buy-now').on('click', function() {
-        var productId = $(this).data('product-id');
-        var variantId = $(this).data('variant-id');
+  $(document).ready(function() {
+    $('.buy-now').on('click', function() {
+      var productId = $(this).data('product-id');
+      var variantId = $(this).data('variant-id');
 
-        $.ajax({
-          type: 'POST',
-          url: '/cart/add.js',
-          dataType: 'json',
-          data: {
-            quantity: 1,
-            id: variantId
-          },
-          success: function(response) {
-            window.location.href = '/checkout';
-          },
-          error: function(xhr, status, error) {
-            console.error(xhr.responseText);
-            // Тут можна додати обробку помилок в разі необхідності
-          }
-        });
+      $.ajax({
+        type: 'POST',
+        url: '/cart/add.js',
+        dataType: 'json',
+        data: {
+          quantity: 1,
+          id: variantId
+        },
+        success: function(response) {
+          window.location.href = '/checkout';
+        },
+        error: function(xhr, status, error) {
+          console.error(xhr.responseText);
+        }
+      });
+    });
+  });
+
+  $(document).ready(function() {
+    $('.add-to-cart-button').on('click', function() {
+      var productId = $(this).data('product-id');
+      var variantId = $(this).data('variant-id');
+
+      $.ajax({
+        type: 'POST',
+        url: '/cart/add.js',
+        dataType: 'json',
+        data: {
+          quantity: 1,
+          id: variantId
+        },
+        success: function(response) {
+          console.log('Product added to cart!');
+          updateCartCount();
+        },
+        error: function(xhr, status, error) {
+          console.error(xhr.responseText);
+        }
       });
     });
 
-  $(document).ready(function() {
-      $('.add-to-cart-button').on('click', function() {
-          var productId = $(this).data('product-id');
-          var variantId = $(this).data('variant-id');
-
-          // Виконати AJAX-запит на додавання товару в кошик
-          $.ajax({
-              type: 'POST',
-              url: '/cart/add.js',
-              dataType: 'json',
-              data: {
-                  quantity: 1,
-                  id: variantId
-              },
-              success: function(response) {
-                  // Успішно додано до кошика
-                  console.log('Product added to cart!');
-
-                // Отримати поточне значення лічильника кількості продуктів у кошику
-                var currentCount = parseInt($('.cart-count-bubble span').text().trim()); // Очистити текст від зайвих символів і пробілів
-
-                // Збільшити лічильник на 1
-                var newCount = currentCount + 1;
-
-                // Оновити лічильник кількості продуктів у кошику
-                $('.cart-count-bubble span').empty().text(newCount);
-              },
-              error: function(xhr, status, error) {
-                  console.error(xhr.responseText);
-                  // Тут можна додати обробку помилок в разі необхідності
-              }
-          });
+    function updateCartCount() {
+      $.ajax({
+        type: 'GET',
+        url: '/cart.js',
+        dataType: 'json',
+        success: function(cartData) {
+          var itemCount = cartData.item_count;
+          $('.cart-count-bubble .custom-count').text(itemCount);
+        },
+        error: function(xhr, status, error) {
+          console.error(xhr.responseText);
+        }
       });
+    }
   });
 </script>
 <style>
